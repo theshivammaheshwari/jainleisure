@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is authenticated
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    // Helper: get user document
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper: check role
+    function hasRole(role) {
+      return isAuth() && getUserData().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    // Users collection - users can read their own doc, admin can read all
+    match /users/{uid} {
+      allow read: if isAuth() && (uid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Firms - authenticated users can read, only admin can write
+    match /firms/{firmId} {
+      allow read: if isAuth();
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Clients - both roles can read & create, only admin can update/delete
+    match /clients/{clientId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update, delete: if isAdmin();
+    }
+
+    // Ledger Entries - authenticated can read & create & update, only admin can delete
+    match /ledgerEntries/{entryId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isAuth();
+      allow delete: if isAdmin();
+    }
+
+    // Edit History - authenticated can create (for audit trail), only admin can read
+    match /editHistory/{historyId} {
+      allow read: if isAdmin();
+      allow create: if isAuth();
+      allow update, delete: if false; // immutable audit log
+    }
+  }
+}
