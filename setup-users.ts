@@ -3,7 +3,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { getFirestore, collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, collection, addDoc, query, where, getDocs, doc, setDoc, getDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyC3o7nraQCqlxA9d6Hv_pDPcdyx81ejYFk",
@@ -31,18 +31,16 @@ async function setup() {
       const uid = cred.user.uid;
       console.log(`   UID: ${uid}`);
 
-      // Check if profile already exists
-      const q = query(collection(db, "users"), where("userId", "==", uid));
-      const existing = await getDocs(q);
-
-      if (!existing.empty) {
+      // Check if profile already exists (by UID as doc ID)
+      const userDocRef = doc(db, "users", uid);
+      const existing = await getDoc(userDocRef);
+      if (existing.exists()) {
         console.log(`   ⚠️  Profile already exists, skipping.`);
         continue;
       }
-
-      // Create profile document
+      // Create profile document with UID as doc ID
       const now = new Date().toISOString();
-      await addDoc(collection(db, "users"), {
+      await setDoc(userDocRef, {
         userId: uid,
         fullName: u.fullName,
         email: u.email,
@@ -50,7 +48,6 @@ async function setup() {
         createdAt: now,
         updatedAt: now,
       });
-
       console.log(`   ✅ Created ${u.role} profile for ${u.email}`);
     } catch (err: any) {
       console.error(`   ❌ Error: ${err.message}`);
