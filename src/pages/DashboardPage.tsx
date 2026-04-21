@@ -19,7 +19,7 @@ interface ClientBalance {
 
 const DashboardPage = () => {
   const { role } = useAuth();
-  const [stats, setStats] = useState({ firms: 0, clients: 0, entries: 0, totalDebit: 0, totalCredit: 0 });
+  const [stats, setStats] = useState({ firms: 0, clients: 0, entries: 0, totalDebit: 0, totalCredit: 0, totalDiscount: 0 });
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [search, setSearch] = useState("");
 
@@ -32,7 +32,8 @@ const DashboardPage = () => {
       ]);
 
       const totalDebit = entries.filter(e => e.entryType === "debit").reduce((s, e) => s + Number(e.amount), 0);
-      const totalCredit = entries.filter(e => e.entryType !== "debit").reduce((s, e) => s + Number(e.amount), 0);
+      const totalCredit = entries.filter(e => e.entryType === "credit").reduce((s, e) => s + Number(e.amount), 0);
+      const totalDiscount = entries.filter(e => e.entryType === "discount").reduce((s, e) => s + Number(e.amount), 0);
 
       setStats({
         firms: firms.length,
@@ -40,6 +41,7 @@ const DashboardPage = () => {
         entries: entries.length,
         totalDebit,
         totalCredit,
+        totalDiscount,
       });
 
       // Build firm/client maps
@@ -111,6 +113,7 @@ const DashboardPage = () => {
     { title: "Entries", value: stats.entries, icon: BookOpen, color: "text-violet-600", bg: "bg-violet-50" },
     { title: "Total Debit", value: `₹${stats.totalDebit.toLocaleString("en-IN")}`, icon: TrendingUp, color: "text-red-600", bg: "bg-red-50" },
     { title: "Total Credit", value: `₹${stats.totalCredit.toLocaleString("en-IN")}`, icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "Total Discount", value: `₹${stats.totalDiscount.toLocaleString("en-IN")}`, icon: TrendingDown, color: "text-orange-500", bg: "bg-orange-50" },
   ];
 
   return (
