@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { deleteAllUsers } from "@/lib/firestore";
+import { deleteAuditLog } from "@/lib/firestore";
 import { useState } from "react";
 
 const mainNav = [
@@ -44,20 +44,20 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { role, profile, signOut } = useAuth();
-  const [deletingUsers, setDeletingUsers] = useState(false);
+  const [deletingAudit, setDeletingAudit] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
 
-  const handleDeleteAllUsers = async () => {
-    if (!window.confirm("Are you sure you want to delete ALL users? This cannot be undone.")) return;
-    setDeletingUsers(true);
+  const handleDeleteAuditLog = async () => {
+    if (!window.confirm("Are you sure you want to delete the entire Audit Log? This cannot be undone.")) return;
+    setDeletingAudit(true);
     try {
-      const count = await deleteAllUsers();
-      toast({ title: `Deleted ${count} users`, variant: "success" });
+      const count = await deleteAuditLog();
+      toast({ title: `Deleted ${count} audit log entries`, variant: "success" });
     } catch (err) {
-      toast({ title: "Failed to delete users", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
+      toast({ title: "Failed to delete audit log", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
     }
-    setDeletingUsers(false);
+    setDeletingAudit(false);
   };
 
   return (
@@ -104,8 +104,8 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 ))}
                 <SidebarMenuItem>
-                  <Button variant="destructive" size="sm" onClick={handleDeleteAllUsers} disabled={deletingUsers} className="w-full mt-2">
-                    Delete All Users
+                  <Button variant="destructive" size="sm" onClick={handleDeleteAuditLog} disabled={deletingAudit} className="w-full mt-2">
+                    Delete Audit Log
                   </Button>
                 </SidebarMenuItem>
               </SidebarMenu>

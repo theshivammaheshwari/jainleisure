@@ -1,6 +1,6 @@
-// ==================== ADMIN: DELETE ALL USERS ====================
-export async function deleteAllUsers(): Promise<number> {
-  const snap = await getDocs(collection(db, "users"));
+// ==================== ADMIN: DELETE AUDIT LOG ====================
+export async function deleteAuditLog(): Promise<number> {
+  const snap = await getDocs(collection(db, "editHistory"));
   let deleted = 0;
   for (let i = 0; i < snap.docs.length; i += 400) {
     const batch = writeBatch(db);

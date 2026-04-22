@@ -25,20 +25,27 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+
       const [firms, clients, entries] = await Promise.all([
         getFirms(),
         getClients(),
         getAllLedgerEntries(),
       ]);
 
-      const totalDebit = entries.filter(e => e.entryType === "debit").reduce((s, e) => s + Number(e.amount), 0);
-      const totalCredit = entries.filter(e => e.entryType === "credit").reduce((s, e) => s + Number(e.amount), 0);
-      const totalDiscount = entries.filter(e => e.entryType === "discount").reduce((s, e) => s + Number(e.amount), 0);
+      // If no firms or no clients, ignore all entries
+      let filteredEntries = entries;
+      if (firms.length === 0 || clients.length === 0) {
+        filteredEntries = [];
+      }
+
+      const totalDebit = filteredEntries.filter(e => e.entryType === "debit").reduce((s, e) => s + Number(e.amount), 0);
+      const totalCredit = filteredEntries.filter(e => e.entryType === "credit").reduce((s, e) => s + Number(e.amount), 0);
+      const totalDiscount = filteredEntries.filter(e => e.entryType === "discount").reduce((s, e) => s + Number(e.amount), 0);
 
       setStats({
         firms: firms.length,
         clients: clients.length,
-        entries: entries.length,
+        entries: filteredEntries.length,
         totalDebit,
         totalCredit,
         totalDiscount,
@@ -53,7 +60,7 @@ const DashboardPage = () => {
 
       // Calculate per-client balances
       const balMap: Record<string, { debit: number; credit: number; discount: number }> = {};
-      for (const e of entries) {
+      for (const e of filteredEntries) {
         const key = e.clientId;
         if (!balMap[key]) balMap[key] = { debit: 0, credit: 0, discount: 0 };
         if (e.entryType === "debit") balMap[key].debit += Number(e.amount);
