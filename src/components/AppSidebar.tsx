@@ -23,6 +23,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
+import { deleteAllUsers } from "@/lib/firestore";
+import { useState } from "react";
 
 const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -41,8 +44,21 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { role, profile, signOut } = useAuth();
+  const [deletingUsers, setDeletingUsers] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleDeleteAllUsers = async () => {
+    if (!window.confirm("Are you sure you want to delete ALL users? This cannot be undone.")) return;
+    setDeletingUsers(true);
+    try {
+      const count = await deleteAllUsers();
+      toast({ title: `Deleted ${count} users`, variant: "success" });
+    } catch (err) {
+      toast({ title: "Failed to delete users", description: err instanceof Error ? err.message : "Unknown error", variant: "destructive" });
+    }
+    setDeletingUsers(false);
+  };
 
   return (
     <Sidebar collapsible="icon" className="gradient-sidebar border-r-0">
@@ -87,6 +103,11 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
+                <SidebarMenuItem>
+                  <Button variant="destructive" size="sm" onClick={handleDeleteAllUsers} disabled={deletingUsers} className="w-full mt-2">
+                    Delete All Users
+                  </Button>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

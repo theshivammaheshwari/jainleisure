@@ -1,3 +1,15 @@
+// ==================== ADMIN: DELETE ALL USERS ====================
+export async function deleteAllUsers(): Promise<number> {
+  const snap = await getDocs(collection(db, "users"));
+  let deleted = 0;
+  for (let i = 0; i < snap.docs.length; i += 400) {
+    const batch = writeBatch(db);
+    snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+    await batch.commit();
+    deleted += Math.min(400, snap.docs.length - i);
+  }
+  return deleted;
+}
 import {
   collection,
   doc,
