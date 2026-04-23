@@ -19,8 +19,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const users = [
-  { email: "shivamtensor@gmail.com", password: "692127", fullName: "Shivam (Admin)", role: "admin" },
-  { email: "247shivam@gmail.com", password: "692127", fullName: "Shivam (Employee)", role: "employee" },
+  { email: "abhi95.india@gmail.com", password: "302031", fullName: "Shivam (Admin)", role: "admin" },
+  { email: "shivamtensor@gmail.com", password: "302019", fullName: "Shivam (Employee)", role: "employee" },
 ];
 
 async function fix() {
