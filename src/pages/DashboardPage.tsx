@@ -33,7 +33,9 @@ const DashboardPage = () => {
       ]);
 
       // If no firms or no clients, ignore all entries
-      let filteredEntries = entries;
+
+      // Only allow valid entry types
+      let filteredEntries = entries.filter(e => ["debit", "credit", "discount"].includes(e.entryType));
       if (firms.length === 0 || clients.length === 0) {
         filteredEntries = [];
       }
