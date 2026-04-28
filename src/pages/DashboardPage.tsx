@@ -31,7 +31,10 @@ const DashboardPage = () => {
         getClients(),
         getAllLedgerEntries(),
       ]);
-      let filteredEntries = entries.filter(e => ["debit", "credit", "discount"].includes(e.entryType));
+      let filteredEntries = entries.filter(e => 
+        ["debit", "credit", "discount"].includes(e.entryType) && 
+        !(e.description || "").startsWith("Opening Balance from FY")
+      );
       if (firms.length === 0 || clients.length === 0) {
         filteredEntries = [];
       }
