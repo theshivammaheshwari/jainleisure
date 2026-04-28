@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { DashboardStatsProvider } from "@/contexts/DashboardStatsContext";
 import AppLayout from "@/components/AppLayout";
 import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
@@ -34,16 +35,18 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<AuthRedirect />} />
-            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/firms" element={<ProtectedRoute><FirmsPage /></ProtectedRoute>} />
-            <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
-            <Route path="/ledger" element={<ProtectedRoute><LedgerPage /></ProtectedRoute>} />
-            <Route path="/audit" element={<ProtectedRoute adminOnly><AuditPage /></ProtectedRoute>} />
-            <Route path="/backup" element={<ProtectedRoute adminOnly><BackupPage /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <DashboardStatsProvider>
+            <Routes>
+              <Route path="/login" element={<AuthRedirect />} />
+              <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+              <Route path="/firms" element={<ProtectedRoute><FirmsPage /></ProtectedRoute>} />
+              <Route path="/clients" element={<ProtectedRoute><ClientsPage /></ProtectedRoute>} />
+              <Route path="/ledger" element={<ProtectedRoute><LedgerPage /></ProtectedRoute>} />
+              <Route path="/audit" element={<ProtectedRoute adminOnly><AuditPage /></ProtectedRoute>} />
+              <Route path="/backup" element={<ProtectedRoute adminOnly><BackupPage /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </DashboardStatsProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

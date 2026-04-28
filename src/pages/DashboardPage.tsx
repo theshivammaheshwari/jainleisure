@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useDashboardStats } from "@/contexts/DashboardStatsContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,31 +20,24 @@ interface ClientBalance {
 
 const DashboardPage = () => {
   const { role } = useAuth();
-  const [stats, setStats] = useState({ firms: 0, clients: 0, entries: 0, totalDebit: 0, totalCredit: 0, totalDiscount: 0 });
+  const { stats, setStats, refreshStats } = useDashboardStats();
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchStats = async () => {
-
       const [firms, clients, entries] = await Promise.all([
         getFirms(),
         getClients(),
         getAllLedgerEntries(),
       ]);
-
-      // If no firms or no clients, ignore all entries
-
-      // Only allow valid entry types
       let filteredEntries = entries.filter(e => ["debit", "credit", "discount"].includes(e.entryType));
       if (firms.length === 0 || clients.length === 0) {
         filteredEntries = [];
       }
-
       const totalDebit = filteredEntries.filter(e => e.entryType === "debit").reduce((s, e) => s + Number(e.amount), 0);
       const totalCredit = filteredEntries.filter(e => e.entryType === "credit").reduce((s, e) => s + Number(e.amount), 0);
       const totalDiscount = filteredEntries.filter(e => e.entryType === "discount").reduce((s, e) => s + Number(e.amount), 0);
-
       setStats({
         firms: firms.length,
         clients: clients.length,
@@ -52,15 +46,10 @@ const DashboardPage = () => {
         totalCredit,
         totalDiscount,
       });
-
-      // Build firm/client maps
       const firmMap: Record<string, string> = {};
       firms.forEach(f => { firmMap[f.id] = f.name; });
-
       const clientMap: Record<string, Client> = {};
       clients.forEach(c => { clientMap[c.id] = c; });
-
-      // Calculate per-client balances
       const balMap: Record<string, { debit: number; credit: number; discount: number }> = {};
       for (const e of filteredEntries) {
         const key = e.clientId;
@@ -69,7 +58,6 @@ const DashboardPage = () => {
         else if (e.entryType === "credit") balMap[key].credit += Number(e.amount);
         else balMap[key].discount += Number(e.amount);
       }
-
       const balances: ClientBalance[] = [];
       for (const [clientId, totals] of Object.entries(balMap)) {
         const client = clientMap[clientId];
@@ -89,7 +77,8 @@ const DashboardPage = () => {
       setClientBalances(balances);
     };
     fetchStats();
-  }, []);
+    // eslint-disable-next-line
+  }, [refreshStats]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clientBalances;
@@ -117,12 +106,12 @@ const DashboardPage = () => {
   }, [filtered]);
 
   const cards = [
-    { title: "Firms", value: stats.firms, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "Clients", value: stats.clients, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-    { title: "Entries", value: stats.entries, icon: BookOpen, color: "text-violet-600", bg: "bg-violet-50" },
-    { title: "Total Debit", value: `₹${stats.totalDebit.toLocaleString("en-IN")}`, icon: TrendingUp, color: "text-red-600", bg: "bg-red-50" },
-    { title: "Total Credit", value: `₹${stats.totalCredit.toLocaleString("en-IN")}`, icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { title: "Total Discount", value: `₹${stats.totalDiscount.toLocaleString("en-IN")}`, icon: TrendingDown, color: "text-orange-500", bg: "bg-orange-50" },
+    { title: "Firms", value: stats?.firms ?? 0, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
+    { title: "Clients", value: stats?.clients ?? 0, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { title: "Entries", value: stats?.entries ?? 0, icon: BookOpen, color: "text-violet-600", bg: "bg-violet-50" },
+    { title: "Total Debit", value: `₹${(stats?.totalDebit ?? 0).toLocaleString("en-IN")}", icon: TrendingUp, color: "text-red-600", bg: "bg-red-50" },
+    { title: "Total Credit", value: `₹${(stats?.totalCredit ?? 0).toLocaleString("en-IN")}", icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "Total Discount", value: `₹${(stats?.totalDiscount ?? 0).toLocaleString("en-IN")}", icon: TrendingDown, color: "text-orange-500", bg: "bg-orange-50" },
   ];
 
   return (

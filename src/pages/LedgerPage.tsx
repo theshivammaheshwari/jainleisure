@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Printer, Download, Search, AlertTriangle } from "lucide-react";
 import { getFirms, getClientsByFirm, getLedgerEntries, addLedgerEntry, updateLedgerEntry, deleteLedgerEntry, checkDuplicateBillNo, type Firm, type Client, type LedgerEntry } from "@/lib/firestore";
+import { useDashboardStats } from "@/contexts/DashboardStatsContext";
 
 const getFinancialYear = (date: Date) => {
   const year = date.getFullYear();
@@ -21,6 +22,7 @@ const currentFY = getFinancialYear(new Date());
 
 const LedgerPage = () => {
   const { user, role } = useAuth();
+  const { refreshStats } = useDashboardStats();
   const [firms, setFirms] = useState<Firm[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [entries, setEntries] = useState<LedgerEntry[]>([]);
@@ -186,6 +188,7 @@ const LedgerPage = () => {
       }
       resetForm();
       fetchEntries();
+      refreshStats();
     } catch (err: unknown) {
       toast({ title: "Error", description: err instanceof Error ? err.message : "Failed", variant: "destructive" });
     }
@@ -197,6 +200,7 @@ const LedgerPage = () => {
       await deleteLedgerEntry(id);
       toast({ title: "Entry deleted" });
       setEntries((prev) => prev.filter((e) => e.id !== id));
+      refreshStats();
     } catch (err: unknown) {
       toast({ title: "Error", description: err instanceof Error ? err.message : "Failed", variant: "destructive" });
     }
