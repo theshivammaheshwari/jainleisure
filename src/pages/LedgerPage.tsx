@@ -238,18 +238,19 @@ const LedgerPage = () => {
   const firmName = firms.find(f => f.id === selectedFirm)?.name ?? "";
   const clientName = clients.find(c => c.id === selectedClient)?.name ?? "";
 
-  // Generate FY options (show next FY only after 1 April)
+  // Generate FY options (show next FY only after 1 April, with date check)
   const fyOptions = [];
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth(); // 0-indexed, April = 3
+  const currentDate = now.getDate();
   // Always show previous 2 FY, current FY
   for (let i = -2; i <= 0; i++) {
     const y = currentYear + i;
     fyOptions.push(`${y}-${(y + 1).toString().slice(2)}`);
   }
   // Show next FY only if today is 1 April or later
-  if (currentMonth >= 3) {
+  if (currentMonth > 3 || (currentMonth === 3 && currentDate >= 1)) {
     const y = currentYear + 1;
     fyOptions.push(`${y}-${(y + 1).toString().slice(2)}`);
   }
