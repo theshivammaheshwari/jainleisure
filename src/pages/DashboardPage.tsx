@@ -109,9 +109,9 @@ const DashboardPage = () => {
     { title: "Firms", value: stats?.firms ?? 0, icon: Building2, color: "text-blue-600", bg: "bg-blue-50" },
     { title: "Clients", value: stats?.clients ?? 0, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
     { title: "Entries", value: stats?.entries ?? 0, icon: BookOpen, color: "text-violet-600", bg: "bg-violet-50" },
-    { title: "Total Debit", value: `₹${(stats?.totalDebit ?? 0).toLocaleString("en-IN")}", icon: TrendingUp, color: "text-red-600", bg: "bg-red-50" },
-    { title: "Total Credit", value: `₹${(stats?.totalCredit ?? 0).toLocaleString("en-IN")}", icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
-    { title: "Total Discount", value: `₹${(stats?.totalDiscount ?? 0).toLocaleString("en-IN")}", icon: TrendingDown, color: "text-orange-500", bg: "bg-orange-50" },
+    { title: "Total Debit", value: `₹${(stats?.totalDebit ?? 0).toLocaleString("en-IN")}` , icon: TrendingUp, color: "text-red-600", bg: "bg-red-50" },
+    { title: "Total Credit", value: `₹${(stats?.totalCredit ?? 0).toLocaleString("en-IN")}` , icon: TrendingDown, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { title: "Total Discount", value: `₹${(stats?.totalDiscount ?? 0).toLocaleString("en-IN")}` , icon: TrendingDown, color: "text-orange-500", bg: "bg-orange-50" },
   ];
 
   return (
