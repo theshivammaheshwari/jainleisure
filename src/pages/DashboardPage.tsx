@@ -20,7 +20,7 @@ interface ClientBalance {
 
 const DashboardPage = () => {
   const { role } = useAuth();
-  const { stats, setStats, refreshStats } = useDashboardStats();
+  const { stats, setStats, refreshStats, refreshKey } = useDashboardStats();
   const [clientBalances, setClientBalances] = useState<ClientBalance[]>([]);
   const [search, setSearch] = useState("");
 
@@ -78,7 +78,7 @@ const DashboardPage = () => {
     };
     fetchStats();
     // eslint-disable-next-line
-  }, [refreshStats]);
+  }, [refreshKey]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clientBalances;

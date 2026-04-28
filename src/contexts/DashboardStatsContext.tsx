@@ -13,6 +13,7 @@ interface DashboardStatsContextType {
   stats: DashboardStats | null;
   setStats: (stats: DashboardStats) => void;
   refreshStats: () => void;
+  refreshKey: number;
 }
 
 const DashboardStatsContext = createContext<DashboardStatsContextType | undefined>(undefined);
@@ -32,7 +33,7 @@ export const DashboardStatsProvider: React.FC<{ children: React.ReactNode }> = (
   }, []);
 
   return (
-    <DashboardStatsContext.Provider value={{ stats, setStats, refreshStats }}>
+    <DashboardStatsContext.Provider value={{ stats, setStats, refreshStats, refreshKey }}>
       {children}
     </DashboardStatsContext.Provider>
   );

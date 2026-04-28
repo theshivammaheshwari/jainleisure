@@ -73,6 +73,15 @@ const LedgerPage = () => {
           else prevBalance -= Number(e.amount);
         }
         if (prevBalance !== 0) {
+          // Re-check current FY entries just before adding to avoid race conditions
+          const latest = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
+          const latestHasOpening = latest.some((e) => (e.description ?? "").startsWith("Opening Balance"));
+          if (latestHasOpening) {
+            // Another client/process added it concurrently; use latest
+            setEntries(latest);
+            return;
+          }
+
           await addLedgerEntry({
             firmId: selectedFirm,
             clientId: selectedClient,

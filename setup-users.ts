@@ -49,8 +49,9 @@ async function setup() {
         updatedAt: now,
       });
       console.log(`   ✅ Created ${u.role} profile for ${u.email}`);
-    } catch (err: any) {
-      console.error(`   ❌ Error: ${err.message}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`   ❌ Error: ${msg}`);
     }
   }
 
