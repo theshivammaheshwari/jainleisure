@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ const LedgerPage = () => {
     getClientsByFirm(selectedFirm).then((data) => { setClients(data); setSelectedClient(""); });
   }, [selectedFirm]);
 
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     if (!selectedClient || !selectedFirm) { setEntries([]); return; }
     const [startYear] = financialYear.split("-").map(Number);
     const fyStart = `${startYear}-04-01`;
@@ -102,11 +102,11 @@ const LedgerPage = () => {
     }
 
     setEntries(data);
-  };
+  }, [selectedClient, selectedFirm, financialYear, user]);
 
   useEffect(() => {
     fetchEntries();
-  }, [selectedClient, selectedFirm, financialYear]);
+  }, [fetchEntries]);
 
   const entriesWithBalance = useMemo(() => {
     let balance = 0;
@@ -253,15 +253,15 @@ const LedgerPage = () => {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth(); // 0-indexed, April = 3
   const currentDate = now.getDate();
-  // Always show previous 2 FY, current FY
-  for (let i = -2; i <= 0; i++) {
-    const y = currentYear + i;
-    fyOptions.push(`${y}-${(y + 1).toString().slice(2)}`);
-  }
-  // Show next FY only if today is 1 April or later
-  if (currentMonth > 3 || (currentMonth === 3 && currentDate >= 1)) {
-    const y = currentYear + 1;
-    fyOptions.push(`${y}-${(y + 1).toString().slice(2)}`);
+
+  // Current true financial year logic:
+  // If we are before April 1st, we are still in currentYear - 1
+  const isPastAprilFirst = currentMonth > 3 || (currentMonth === 3 && currentDate >= 1);
+  const currentFYStartYear = isPastAprilFirst ? currentYear : currentYear - 1;
+
+  // Always show current FY and previous 2 FYs
+  for (let i = currentFYStartYear - 2; i <= currentFYStartYear; i++) {
+    fyOptions.push(`${i}-${(i + 1).toString().slice(2)}`);
   }
 
   return (
