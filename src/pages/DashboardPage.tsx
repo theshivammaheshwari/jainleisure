@@ -33,7 +33,7 @@ const DashboardPage = () => {
       ]);
       let filteredEntries = entries.filter(e => 
         ["debit", "credit", "discount"].includes(e.entryType) && 
-        !(e.description || "").startsWith("Opening Balance from FY")
+        !(e.description || "").toLowerCase().includes("opening balance")
       );
       if (firms.length === 0 || clients.length === 0) {
         filteredEntries = [];
