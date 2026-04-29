@@ -59,43 +59,71 @@ const LedgerPage = () => {
     const fyEnd = `${startYear + 1}-03-31`;
     const data = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
 
-    // Auto carry-forward: check if previous FY had balance and no opening balance exists yet
-    const hasOpeningBalance = data.some((e) => (e.description ?? "").startsWith("Opening Balance"));
-    if (!hasOpeningBalance) {
-      const prevStartYear = startYear - 1;
-      const prevFyStart = `${prevStartYear}-04-01`;
-      const prevFyEnd = `${prevStartYear + 1}-03-31`;
-      const prevData = await getLedgerEntries(selectedFirm, selectedClient, prevFyStart, prevFyEnd);
-      if (prevData.length > 0) {
-        let prevBalance = 0;
-        for (const e of prevData) {
-          if (e.entryType === "debit") prevBalance += Number(e.amount);
-          else prevBalance -= Number(e.amount);
-        }
-        if (prevBalance !== 0) {
-          // Re-check current FY entries just before adding to avoid race conditions
-          const latest = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
-          const latestHasOpening = latest.some((e) => (e.description ?? "").startsWith("Opening Balance"));
-          if (latestHasOpening) {
-            // Another client/process added it concurrently; use latest
-            setEntries(latest);
-            return;
-          }
+    // Auto carry-forward: Sync the opening balance with the actual previous year balance
+    const prevStartYear = startYear - 1;
+    const prevFyStart = `${prevStartYear}-04-01`;
+    const prevFyEnd = `${prevStartYear + 1}-03-31`;
+    const prevData = await getLedgerEntries(selectedFirm, selectedClient, prevFyStart, prevFyEnd);
+    
+    let prevBalance = 0;
+    for (const e of prevData) {
+      if (e.entryType === "debit") prevBalance += Number(e.amount);
+      else prevBalance -= Number(e.amount); // credit or discount
+    }
 
-          await addLedgerEntry({
-            firmId: selectedFirm,
-            clientId: selectedClient,
-            date: fyStart,
-            billNo: undefined,
-            description: `Opening Balance from FY ${prevStartYear}-${(prevStartYear + 1).toString().slice(2)}`,
-            amount: Math.abs(prevBalance),
-            entryType: prevBalance > 0 ? "debit" : "credit",
-            createdBy: user!.uid,
+    const expectedAmount = Math.abs(prevBalance);
+    const expectedType = prevBalance >= 0 ? "debit" : "credit"; // 0 can default to debit, but we handle 0 below
+    const expectedDesc = `Opening Balance from FY ${prevStartYear}-${(prevStartYear + 1).toString().slice(2)}`;
+
+    const existingOpeningBalances = data.filter((e) => (e.description ?? "").toLowerCase().startsWith("opening balance"));
+
+    if (prevBalance === 0) {
+      if (existingOpeningBalances.length > 0) {
+        for (const ob of existingOpeningBalances) {
+          await deleteLedgerEntry(ob.id);
+        }
+        setEntries(data.filter(e => !(e.description ?? "").toLowerCase().startsWith("opening balance")));
+        return;
+      }
+    } else {
+      if (existingOpeningBalances.length === 0) {
+        // Create new
+        await addLedgerEntry({
+          firmId: selectedFirm,
+          clientId: selectedClient,
+          date: fyStart,
+          billNo: undefined,
+          description: expectedDesc,
+          amount: expectedAmount,
+          entryType: expectedType,
+          createdBy: user!.uid,
+        });
+        const updated = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
+        setEntries(updated);
+        toast({ title: "Opening Balance", description: `₹${expectedAmount.toLocaleString("en-IN")} ${expectedType === "debit" ? "Dr" : "Cr"} carried forward` });
+        return;
+      } else {
+        // Check if needs update
+        const ob = existingOpeningBalances[0];
+        if (ob.amount !== expectedAmount || ob.entryType !== expectedType) {
+          await updateLedgerEntry(ob.id, {
+            ...ob,
+            amount: expectedAmount,
+            entryType: expectedType,
+            updatedBy: user!.uid,
           });
-          // Re-fetch to include the new opening balance entry
           const updated = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
           setEntries(updated);
-          toast({ title: "Opening Balance", description: `₹${Math.abs(prevBalance).toLocaleString("en-IN")} ${prevBalance > 0 ? "Dr" : "Cr"} carried forward from previous FY` });
+          toast({ title: "Opening Balance Updated", description: `Synced from previous FY: ₹${expectedAmount.toLocaleString("en-IN")} ${expectedType === "debit" ? "Dr" : "Cr"}` });
+          return;
+        }
+        // Cleanup duplicates if any
+        if (existingOpeningBalances.length > 1) {
+          for (let i = 1; i < existingOpeningBalances.length; i++) {
+            await deleteLedgerEntry(existingOpeningBalances[i].id);
+          }
+          const updated = await getLedgerEntries(selectedFirm, selectedClient, fyStart, fyEnd);
+          setEntries(updated);
           return;
         }
       }

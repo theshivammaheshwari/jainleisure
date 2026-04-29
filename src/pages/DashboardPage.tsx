@@ -31,10 +31,13 @@ const DashboardPage = () => {
         getClients(),
         getAllLedgerEntries(),
       ]);
-      let filteredEntries = entries.filter(e => 
-        ["debit", "credit", "discount"].includes(e.entryType) && 
-        !(e.description || "").toLowerCase().includes("opening balance")
-      );
+      let filteredEntries = entries.filter(e => {
+        if (!["debit", "credit", "discount"].includes(e.entryType)) return false;
+        const desc = (e.description || "").toLowerCase();
+        // Ignore ONLY the auto-generated carry-forward entries to prevent double counting
+        if (desc.startsWith("opening balance from fy ")) return false;
+        return true;
+      });
       if (firms.length === 0 || clients.length === 0) {
         filteredEntries = [];
       }
