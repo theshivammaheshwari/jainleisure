@@ -256,7 +256,7 @@ const LedgerPage = () => {
   const handlePrint = () => window.print();
 
   const handleExportCSV = () => {
-    const headers = "Date,Bill No,Description,Debit,Credit,Discount,Balance\n";
+    const headers = "Date,Bill No,Description,Deposited,Withdrawn,Discount,Balance\n";
     const rows = entriesWithBalance.map((e) => {
       const debit = e.entryType === "debit" ? e.amount : "";
       const credit = e.entryType === "credit" ? e.amount : "";
@@ -380,8 +380,8 @@ const LedgerPage = () => {
                 <Select value={formType} onValueChange={setFormType}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="debit">Debit</SelectItem>
-                    <SelectItem value="credit">Credit</SelectItem>
+                    <SelectItem value="debit">Deposited</SelectItem>
+                    <SelectItem value="credit">Withdrawn</SelectItem>
                     <SelectItem value="discount">Discount</SelectItem>
                   </SelectContent>
                 </Select>
@@ -409,8 +409,8 @@ const LedgerPage = () => {
                     <TableHead className="w-24">Date</TableHead>
                     <TableHead className="w-28">Bill No</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead className="text-right w-28">Debit</TableHead>
-                    <TableHead className="text-right w-28">Credit</TableHead>
+                    <TableHead className="text-right w-28">Deposited</TableHead>
+                    <TableHead className="text-right w-28">Withdrawn</TableHead>
                     <TableHead className="text-right w-28">Discount</TableHead>
                     <TableHead className="text-right w-32">Balance</TableHead>
                     <TableHead className="w-20 no-print">Actions</TableHead>
@@ -489,11 +489,11 @@ const LedgerPage = () => {
               <Card className="w-72">
                 <CardContent className="p-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Debit:</span>
+                    <span className="text-muted-foreground">Total Deposited:</span>
                     <span className="font-medium text-destructive">₹{filteredEntries.filter(e => e.entryType === "debit").reduce((s, e) => s + Number(e.amount), 0).toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Total Credit:</span>
+                    <span className="text-muted-foreground">Total Withdrawn:</span>
                     <span className="font-medium text-success">₹{filteredEntries.filter(e => e.entryType === "credit").reduce((s, e) => s + Number(e.amount), 0).toLocaleString("en-IN")}</span>
                   </div>
                   <div className="flex justify-between text-sm">
